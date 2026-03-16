@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %} — Home{% endblock %}
+
+{% block content %}
+<div class="featured" onclick="playFromCard({{ featured | tojson }})">
+    <div class="featured-img">
+        {% if featured.thumbnail %}
+        <img src="{{ featured.thumbnail }}" alt="{{ featured.title }}">
+        {% else %}
+        ♪
+        {% endif %}
+    </div>
+    <div class="featured-info">
+        <div class="featured-type">Song</div>
+        <div class="featured-title">{{ featured.title }}</div>
+        <div class="featured-meta">{{ featured.artist }}</div>
+    </div>
+</div>
+
+<div class="page-section">
+    <div class="section-row">
+        <div class="section-title">Trending</div>
+        <a href="/search" class="see-all">See all</a>
+    </div>
+    <div class="cards">
+        {% for song in trending %}
+        <div class="card" data-id="{{ song.id }}" onclick="playFromCard({{ song | tojson }})">
+            <div class="card-img-wrap">
+                <div class="card-img">
+                    {% if song.thumbnail %}
+                    <img src="{{ song.thumbnail }}" alt="{{ song.title }}">
+                    {% else %}
+                    ♪
+                    {% endif %}
+                </div>
+                <div class="card-play">▶</div>
+            </div>
+            <div class="card-title">{{ song.title }}</div>
+            <div class="card-sub">{{ song.artist }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="page-section" style="margin-top: 32px;">
+    <div class="section-row">
+        <div class="section-title">Recently Added</div>
+    </div>
+    <div class="cards">
+        {% for song in recent %}
+        <div class="card" data-id="{{ song.id }}" onclick="playFromCard({{ song | tojson }})">
+            <div class="card-img-wrap">
+                <div class="card-img">
+                    {% if song.thumbnail %}
+                    <img src="{{ song.thumbnail }}" alt="{{ song.title }}">
+                    {% else %}
+                    ♪
+                    {% endif %}
+                </div>
+                <div class="card-play">▶</div>
+            </div>
+            <div class="card-title">{{ song.title }}</div>
+            <div class="card-sub">{{ song.artist }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="pb"></div>
+{% endblock %}
