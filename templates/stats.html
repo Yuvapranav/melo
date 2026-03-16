@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %} — Stats{% endblock %}
+
+{% block content %}
+<div class="page-section" style="padding-top: 32px;">
+    <div class="section-title">Listening Stats</div>
+    <p style="font-size: 13px; color: #b3b3b3; margin-top: 4px; margin-bottom: 28px;">
+        Your music in numbers
+    </p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-box">
+        <div class="stat-box-title">Top Songs</div>
+        {% if top %}
+        <div>
+            {% for song in top %}
+            <div class="bar-item">
+                <div class="bar-meta">
+                    <span class="bar-name">{{ song.title }}</span>
+                    <span class="bar-count">{{ song.plays }} plays</span>
+                </div>
+                <div class="bar-track">
+                    <div class="bar-fill" data-pct="{{ ((song.plays / max_plays) * 100) | int }}"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="color: #727272; font-size: 13px;">Play some songs to see your stats</p>
+        {% endif %}
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div class="stat-box">
+            <div class="stat-box-title">Total Plays</div>
+            <div class="big-number">{{ total }}</div>
+            <div class="big-label">songs played across your library</div>
+        </div>
+
+        <div class="stat-box">
+            <div class="stat-box-title">Songs Tracked</div>
+            <div class="big-number">{{ top | length }}</div>
+            <div class="big-label">songs in your history</div>
+        </div>
+    </div>
+
+    {% if top %}
+    <div class="stat-box">
+        <div class="stat-box-title">Top Artists</div>
+        {% set seen = namespace(artists={}) %}
+        {% for song in top %}
+            {% if song.artist not in seen.artists %}
+                {% set _ = seen.artists.update({song.artist: song.plays}) %}
+            {% endif %}
+        {% endfor %}
+        {% for artist, plays in seen.artists.items() %}
+        <div class="bar-item">
+            <div class="bar-meta">
+                <span class="bar-name">{{ artist }}</span>
+                <span class="bar-count">{{ plays }}</span>
+            </div>
+            <div class="bar-track">
+                <div class="bar-fill" data-pct="{{ ((plays / max_plays) * 100) | int }}"></div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="stat-box">
+        <div class="stat-box-title">Mood Breakdown</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px;">
+            <div style="background:#1e3c7233;border-radius:6px;padding:14px;cursor:pointer;" onclick="window.location='/search'">
+                <div style="font-size:22px;margin-bottom:6px;">🌊</div>
+                <div style="font-size:13px;font-weight:600;">Chill</div>
+            </div>
+            <div style="background:#c3143233;border-radius:6px;padding:14px;cursor:pointer;" onclick="window.location='/search'">
+                <div style="font-size:22px;margin-bottom:6px;">⚡</div>
+                <div style="font-size:13px;font-weight:600;">Hype</div>
+            </div>
+            <div style="background:#134e5e33;border-radius:6px;padding:14px;cursor:pointer;" onclick="window.location='/search'">
+                <div style="font-size:22px;margin-bottom:6px;">🎯</div>
+                <div style="font-size:13px;font-weight:600;">Focus</div>
+            </div>
+            <div style="background:#2c3e5033;border-radius:6px;padding:14px;cursor:pointer;" onclick="window.location='/search'">
+                <div style="font-size:22px;margin-bottom:6px;">🌙</div>
+                <div style="font-size:13px;font-weight:600;">Sad</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="pb"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.addEventListener("load", function() {
+    setTimeout(function() {
+        document.querySelectorAll(".bar-fill").forEach(function(el) {
+            el.style.width = (el.dataset.pct || 0) + "%";
+        });
+    }, 200);
+});
+</script>
+{% endblock %}

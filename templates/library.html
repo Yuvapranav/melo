@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %} — Library{% endblock %}
+
+{% block content %}
+<div class="page-section" style="padding-top: 32px;">
+    <div class="section-title">Your Library</div>
+    <p style="font-size: 13px; color: #b3b3b3; margin-top: 4px; margin-bottom: 24px;">
+        Songs you've saved
+    </p>
+
+    {% if songs %}
+    <button onclick="playAll()" style="
+        background: #1db954;
+        border: none;
+        border-radius: 500px;
+        color: #000;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 12px 32px;
+        cursor: pointer;
+        font-family: 'Inter', sans-serif;
+        margin-bottom: 28px;
+        letter-spacing: 0.5px;
+        transition: background 0.15s;
+    " onmouseover="this.style.background='#1ed760'"
+       onmouseout="this.style.background='#1db954'">
+        Play
+    </button>
+
+    <div class="song-list-header">
+        <span>#</span>
+        <span>Title</span>
+        <span>Artist</span>
+        <span style="text-align:right;">Duration</span>
+        <span></span>
+    </div>
+
+    {% for song in songs %}
+    <div class="song-row" data-id="{{ song.id }}" onclick="playFromCard({{ song | tojson }})">
+        <span class="song-num">{{ loop.index }}</span>
+        <div class="song-info">
+            <div class="song-thumb">
+                {% if song.thumbnail %}
+                <img src="{{ song.thumbnail }}" alt="{{ song.title }}">
+                {% else %}
+                ♪
+                {% endif %}
+            </div>
+            <div>
+                <div class="song-name">{{ song.title }}</div>
+                <div class="song-artist">{{ song.artist }}</div>
+            </div>
+        </div>
+        <div class="song-album">{{ song.mood }}</div>
+        <div class="song-duration">{{ song.duration_str }}</div>
+        <button class="song-like liked"
+                onclick="event.stopPropagation(); removeLiked(event, '{{ song.id }}', this)">♥</button>
+    </div>
+    {% endfor %}
+
+    {% else %}
+    <div class="empty">
+        <div class="empty-icon">♡</div>
+        <div class="empty-title">Songs you like will appear here</div>
+        <div class="empty-sub">Save songs by pressing the heart icon while a song is playing.</div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="pb"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+var librarySongs = {{ songs | tojson }};
+
+function playAll() {
+    if (!librarySongs.length) return;
+    librarySongs.forEach(function(s) {
+        if (!queue.find(function(q) { return q.id === s.id; })) {
+            queue.push(s);
+        }
+    });
+    playFromCard(librarySongs[0]);
+}
+
+async function removeLiked(e, songId, btn) {
+    e.stopPropagation();
+    await fetch("/api/like/" + songId, { method: "POST" });
+    var row = btn.closest(".song-row");
+    row.style.transition = "opacity 0.3s";
+    row.style.opacity = "0";
+    setTimeout(function() { row.remove(); }, 300);
+}
+</script>
+{% endblock %}

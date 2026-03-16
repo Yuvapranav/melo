@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %} — Search{% endblock %}
+
+{% block content %}
+<div class="search-page-hero">
+    <div class="search-page-title">Search</div>
+    <div class="search-page-sub">Find songs and artists</div>
+    <div class="search-input-wrap">
+        <span class="search-input-icon">🔍</span>
+        <input type="text" class="search-input-big" id="searchInput"
+               placeholder="What do you want to listen to?" autocomplete="off">
+    </div>
+</div>
+
+<div class="page-section" id="browseSection">
+    <div class="section-title" style="margin-bottom: 16px;">Browse categories</div>
+    <div class="browse-grid">
+        <div class="browse-card" style="background:#1e3c72;" onclick="searchFor('pop hits 2025')">
+            <div class="browse-card-title">Pop</div>
+            <div class="browse-card-emoji">🎤</div>
+        </div>
+        <div class="browse-card" style="background:#4a1942;" onclick="searchFor('hip hop rap 2025')">
+            <div class="browse-card-title">Hip-Hop</div>
+            <div class="browse-card-emoji">🎧</div>
+        </div>
+        <div class="browse-card" style="background:#0d4429;" onclick="searchFor('lofi chill study')">
+            <div class="browse-card-title">Chill</div>
+            <div class="browse-card-emoji">☁️</div>
+        </div>
+        <div class="browse-card" style="background:#7d1f1f;" onclick="searchFor('workout gym music')">
+            <div class="browse-card-title">Workout</div>
+            <div class="browse-card-emoji">💪</div>
+        </div>
+        <div class="browse-card" style="background:#1f3a4a;" onclick="searchFor('sad emotional songs')">
+            <div class="browse-card-title">Sad Songs</div>
+            <div class="browse-card-emoji">🌧️</div>
+        </div>
+        <div class="browse-card" style="background:#3d2a00;" onclick="searchFor('indie alternative music')">
+            <div class="browse-card-title">Indie</div>
+            <div class="browse-card-emoji">🎸</div>
+        </div>
+        <div class="browse-card" style="background:#2a0a4a;" onclick="searchFor('electronic edm music')">
+            <div class="browse-card-title">Electronic</div>
+            <div class="browse-card-emoji">⚡</div>
+        </div>
+        <div class="browse-card" style="background:#1a3a1a;" onclick="searchFor('tamil songs 2025')">
+            <div class="browse-card-title">Tamil</div>
+            <div class="browse-card-emoji">🎵</div>
+        </div>
+    </div>
+</div>
+
+<div class="page-section" id="resultsSection" style="display:none;">
+    <div class="section-title" id="resultsHeading">Results</div>
+    <div class="cards" id="resultsGrid" style="margin-top: 16px;"></div>
+</div>
+
+<div class="pb"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+var searchTimeout = null;
+
+document.getElementById("searchInput").addEventListener("input", function() {
+    clearTimeout(searchTimeout);
+    var q = this.value.trim();
+    if (!q) {
+        document.getElementById("resultsSection").style.display = "none";
+        document.getElementById("browseSection").style.display = "";
+        return;
+    }
+    searchTimeout = setTimeout(function() {
+        doSearch(q);
+    }, 450);
+});
+
+document.getElementById("searchInput").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+        clearTimeout(searchTimeout);
+        doSearch(this.value.trim());
+    }
+});
+
+function searchFor(query) {
+    document.getElementById("searchInput").value = query;
+    doSearch(query);
+}
+
+async function doSearch(q) {
+    if (!q) return;
+
+    document.getElementById("browseSection").style.display = "none";
+    document.getElementById("resultsSection").style.display = "";
+    document.getElementById("resultsHeading").textContent = 'Results for "' + q + '"';
+    document.getElementById("resultsGrid").innerHTML = '<div style="color:#727272;padding:20px 0;"><span class="spinner"></span> Searching...</div>';
+
+    try {
+        var res = await fetch("/api/search?q=" + encodeURIComponent(q));
+        var songs = await res.json();
+        renderCards(songs);
+    } catch (e) {
+        document.getElementById("resultsGrid").innerHTML = '<div style="color:#727272;padding:20px 0;">Something went wrong. Try again.</div>';
+    }
+}
+
+function renderCards(songs) {
+    var grid = document.getElementById("resultsGrid");
+    if (!songs.length) {
+        grid.innerHTML = '<div style="color:#727272;padding:20px 0;">No results found</div>';
+        return;
+    }
+    grid.innerHTML = songs.map(function(s) {
+        var thumb = s.thumbnail
+            ? '<img src="' + s.thumbnail + '" alt="' + s.title + '">'
+            : '♪';
+        return '<div class="card" data-id="' + s.id + '" onclick=\'playFromCard(' + JSON.stringify(s) + ')\'>' +
+            '<div class="card-img-wrap">' +
+            '<div class="card-img">' + thumb + '</div>' +
+            '<div class="card-play">▶</div>' +
+            '</div>' +
+            '<div class="card-title">' + s.title + '</div>' +
+            '<div class="card-sub">' + s.artist + '</div>' +
+            '</div>';
+    }).join("");
+}
+</script>
+{% endblock %}
